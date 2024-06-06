@@ -1,4 +1,7 @@
-FROM golang:1.22.0-bookworm
+FROM golang:1.22.0-alpine AS builder
+
+WORKDIR /app
+
 COPY go.mod .
 COPY go.sum .
 COPY main.go .
@@ -7,4 +10,12 @@ COPY cmd cmd
 COPY lib lib
 COPY templates templates
 RUN go build -o build/fizzbuzz
-CMD ["./build/fizzbuzz", "serve"]
+
+FROM scratch
+
+WORKDIR /app
+
+COPY --from=builder /app/templates templates
+COPY --from=builder /app/build/fizzbuzz /fizzbuzz
+
+CMD ["/fizzbuzz", "serve"]
